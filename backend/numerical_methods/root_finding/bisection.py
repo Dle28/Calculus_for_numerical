@@ -54,8 +54,10 @@ def bisection_method(f, a, b, mode, value, max_iter=200):
         
         error = abs(c - c_prev)
         relative_error = error / abs(c) if abs(c) > 1e-15 else float('inf')
+        error_pi = 0.5 * 10**-7;
+        V = 1/6 * 3.1415927 * c**3;
         
-        steps.append({"n": i + 1, "a": a, "b": b, "c": c, "fc": fc, "error": error, "relative_error": relative_error})
+        steps.append({"n": i + 1, "a": a, "b": b, "c": c, "fc": fc, "error": error, "relative_error": relative_error, "V": V})
         
         # Kiểm tra điều kiện dừng
         stop = False

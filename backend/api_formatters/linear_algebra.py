@@ -26,6 +26,15 @@ def _format_numeric_data(data):
         return [_format_numeric_data(item) for item in data]
     return _format_complex_value(data)
 
+
+def _build_check_item(status, label, detail, formula=None):
+    return {
+        "status": status,
+        "label": label,
+        "detail": detail,
+        "formula": formula,
+    }
+
 def format_gauss_elimination_result(result):
     num_vars = result.get('num_vars', -1)
     steps_formatted = []
@@ -393,6 +402,12 @@ def format_jacobi_result(result):
             "norm_used": f"Sử dụng chuẩn {norm_symbol}",
             "contraction_coefficient": result['contraction_coefficient']
         },
+        "input_checks": [
+            _build_check_item("passed", "Kich thuoc ma tran", "Da kiem tra A la ma tran vuong va kich thuoc phu hop voi b, x0."),
+            _build_check_item("passed", "Duong cheo chinh", "Da kiem tra moi phan tu tren duong cheo chinh khac 0."),
+            _build_check_item("passed", "Cheo troi", f"Da xac nhan A cheo troi {dominance_msg} de bao dam cong thuc uoc luong sai so.", "q < 1"),
+            _build_check_item("info", "Dao ham", "Phuong phap ma tran nay khong can tinh dao ham hay ma tran Jacobi."),
+        ],
         "iteration_matrix": {
             "B": result['matrix_B'].tolist(),
             "d": result['vector_d'].tolist()
@@ -419,8 +434,16 @@ def format_gauss_seidel_result(result):
             "dominance_type": f"Ma trận chéo trội {dominance_msg}",
             "norm_used": f"Sử dụng chuẩn {norm_symbol}",
             "coeff_q": result['coeff_q'],
-            "coeff_s": result['coeff_s']
+            "coeff_s": result['coeff_s'],
+            "is_row_dominant": result['is_row_dominant'],
+            "is_col_dominant": result['is_col_dominant']
         },
+        "input_checks": [
+            _build_check_item("passed", "Kich thuoc ma tran", "Da kiem tra A la ma tran vuong va kich thuoc phu hop voi b, x0."),
+            _build_check_item("passed", "Duong cheo chinh", "Da kiem tra moi phan tu tren duong cheo chinh khac 0."),
+            _build_check_item("passed", "Cheo troi", f"Da xac nhan A cheo troi {dominance_msg} de tinh q va s.", "q < 1"),
+            _build_check_item("info", "Dao ham", "Phuong phap ma tran nay khong can tinh dao ham hay ma tran Jacobi."),
+        ],
         "steps": [{"table": table}]
     }
 
@@ -444,6 +467,16 @@ def format_simple_iteration_result(result):
             "warning_message": result['warning_message'],
             "stopping_threshold": result.get('stopping_threshold')
         },
+        "input_checks": [
+            _build_check_item("passed", "Kich thuoc ma tran", "Da kiem tra B la ma tran vuong va kich thuoc cua d, x0 tuong thich."),
+            _build_check_item(
+                "warning" if result['warning_message'] else "passed",
+                "Dieu kien hoi tu",
+                result['warning_message'] or "Da kiem tra ||B|| < 1 theo chuan nguoi dung chon.",
+                "||B|| < 1",
+            ),
+            _build_check_item("info", "Dao ham", "Phuong phap ma tran nay khong can tinh dao ham hay ma tran Jacobi."),
+        ],
         "steps": [{"table": table}]
     }
 
@@ -476,6 +509,12 @@ def format_inverse_jacobi_result(result):
             "contraction_coefficient": result['contraction_coefficient'],
             "x0_label": f"X₀ = {x0_label}"
         },
+        "input_checks": [
+            _build_check_item("passed", "Kich thuoc ma tran", "Da kiem tra A la ma tran vuong va co the tinh nghich dao."),
+            _build_check_item("passed", "Cheo troi", f"Da xac nhan A cheo troi {dominance_msg} de danh gia sai so cua lap Jacobi nghich dao.", "q < 1"),
+            _build_check_item("passed", "Ma tran khoi tao", f"Da chon {x0_label} lam ma tran ban dau X0."),
+            _build_check_item("info", "Dao ham", "Phuong phap ma tran nay khong can tinh dao ham hay ma tran Jacobi."),
+        ],
         "initial_matrix": result['initial_matrix'].tolist(),
         "steps": [{"table": table}]
     }
@@ -504,6 +543,12 @@ def format_inverse_newton_result(result):
             "contraction_coefficient": result['contraction_coefficient'],
             "x0_label": result['x0_label']
         },
+        "input_checks": [
+            _build_check_item("passed", "Kich thuoc ma tran", "Da kiem tra A la ma tran vuong va co the tinh nghich dao."),
+            _build_check_item("passed", "Ma tran khoi tao", f"Da chon {result['x0_label']} lam ma tran ban dau X0."),
+            _build_check_item("passed", "He so co", "Da tinh q de uoc luong sai so cho lap tua Newton nghich dao.", "q < 1"),
+            _build_check_item("info", "Dao ham", "Phuong phap ma tran nay khong can tinh dao ham hay ma tran Jacobi."),
+        ],
         "initial_matrix": result['initial_matrix'].tolist(),
         "steps": [{"table": table}]
     }
@@ -538,6 +583,12 @@ def format_inverse_gauss_seidel_result(result):
             "coeff_s": result['coeff_s'],
             "x0_label": f"X₀ = {x0_label}"
         },
+        "input_checks": [
+            _build_check_item("passed", "Kich thuoc ma tran", "Da kiem tra A la ma tran vuong va co the tinh nghich dao."),
+            _build_check_item("passed", "Cheo troi", f"Da xac nhan A cheo troi {dominance_msg} de tinh q va s.", "q < 1"),
+            _build_check_item("passed", "Ma tran khoi tao", f"Da chon {x0_label} lam ma tran ban dau X0."),
+            _build_check_item("info", "Dao ham", "Phuong phap ma tran nay khong can tinh dao ham hay ma tran Jacobi."),
+        ],
         "initial_matrix": result['initial_matrix'].tolist(),
         "steps": [{"table": table}]
     }

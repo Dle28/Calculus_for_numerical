@@ -12,6 +12,32 @@ from backend.utils.nonlinear_system_parser import (
 from backend.utils.real_numeric import sympy_vector_to_real_array, sympy_vector_to_step_info
 
 
+def _to_latex_sci(value: float, sig: int = 4) -> str:
+    value = float(value)
+    if value == 0.0:
+        return "0"
+    mantissa_str, exp_str = f"{value:.{sig}e}".split("e")
+    exp = int(exp_str)
+    mantissa = float(mantissa_str)
+    if exp == 0:
+        return f"{mantissa:g}"
+    return f"{mantissa:g}\\times 10^{{{exp}}}"
+
+
+def _to_latex_num(value: float) -> str:
+    value = float(value)
+    abs_val = abs(value)
+    if abs_val != 0.0 and (abs_val < 1e-4 or abs_val >= 1e6):
+        return _to_latex_sci(value, sig=4)
+    text = f"{value:.7f}".rstrip("0").rstrip(".")
+    return text if text else "0"
+
+
+def _vector_to_latex(values) -> str:
+    parts = [str(_to_latex_num(v)) for v in values]
+    return "\\begin{bmatrix}" + " \\\\ ".join(parts) + "\\end{bmatrix}"
+
+
 def _evaluate_abs_value(func, point):
     value = np.asarray(func(*point), dtype=np.complex128)
     return float(np.max(np.abs(value)))
@@ -100,6 +126,16 @@ def solve_simple_iteration_system(n, expr_list, x0_list, alpha_list, radius, sto
         if radius <= 0:
             raise ValueError("Ban kinh r phai lon hon 0.")
 
+        # Thay so ban dau de nguoi dung xem: X0 va Phi(X0)
+        X0_vec = sympy_vector_to_real_array(X, "X^(0)")
+        phi0_val = phi.subs({variables[i]: X[i] for i in range(n)}).evalf()
+        phi0_vec = sympy_vector_to_real_array(phi0_val, "Phi(X^(0))")
+        initial_evaluation_latex = (
+            f"X^{{(0)}} = {_vector_to_latex(X0_vec)}"
+            f",\\quad \\Phi\\left(X^{{(0)}}\\right) = {_vector_to_latex(phi0_vec)}"
+            f",\\quad X^{{(1)}} = \\Phi\\left(X^{{(0)}}\\right)"
+        )
+
         J = phi.jacobian(variables)
         abs_J = J.applyfunc(Abs)
         display_variables = [display_substitutions[var] for var in variables]
@@ -156,37 +192,63 @@ def solve_simple_iteration_system(n, expr_list, x0_list, alpha_list, radius, sto
         if stop_option == "iterations":
             max_iter = int(stop_value)
             for k in range(max_iter):
-                X = phi.subs({variables[i]: X[i] for i in range(n)}).evalf()
+                X_prev = X.copy()
+                X_next = phi.subs({variables[i]: X[i] for i in range(n)}).evalf()
+                X = X_next
+
+                X_prev_vec = sympy_vector_to_real_array(X_prev, f"Buoc lap {k + 1} X^(k)")
+                X_next_vec = sympy_vector_to_real_array(X_next, f"Buoc lap {k + 1} Phi")
+                eval_latex = (
+                    f"X^{{({k})}} = {_vector_to_latex(X_prev_vec)},\\;"
+                    f"\\Phi(X^{{({k})}}) = {_vector_to_latex(X_next_vec)}"
+                    f"\\Rightarrow X^{{({k + 1})}} = \\Phi(X^{{({k})}})"
+                )
                 step_info = sympy_vector_to_step_info(X, f"Buoc lap {k + 1}:")
                 step_info["k"] = k + 1
+                step_info["eval_latex"] = eval_latex
                 iterations_data.append(step_info)
         else:
             tol = float(stop_value)
-            priori_tol = tol * (1 - K) / K if K > 1e-12 else tol
+            error_factor = K / (1 - K) if (1 - K) > 1e-12 else float("inf")
 
             for k in range(200):
                 X_prev = X.copy()
-                X = phi.subs({variables[i]: X[i] for i in range(n)}).evalf()
+                X_next = phi.subs({variables[i]: X[i] for i in range(n)}).evalf()
+                X = X_next
+
+                X_prev_vec = sympy_vector_to_real_array(X_prev, f"Buoc lap {k + 1} X^(k)")
+                X_next_vec = sympy_vector_to_real_array(X_next, f"Buoc lap {k + 1} Phi")
+                eval_latex = (
+                    f"X^{{({k})}} = {_vector_to_latex(X_prev_vec)},\\;"
+                    f"\\Phi(X^{{({k})}}) = {_vector_to_latex(X_next_vec)}"
+                    f"\\Rightarrow X^{{({k + 1})}} = \\Phi(X^{{({k})}})"
+                )
 
                 current_vec = sympy_vector_to_real_array(X, f"Buoc lap {k + 1}:")
                 prev_vec = sympy_vector_to_real_array(X_prev, f"Buoc lap {k}:")
                 diff_vec_abs = np.abs(current_vec - prev_vec)
 
                 if norm_to_use == "1":
-                    abs_err = np.sum(diff_vec_abs)
+                    diff_norm = float(np.sum(diff_vec_abs))
                     norm_X = np.sum(np.abs(current_vec))
                 else:
-                    abs_err = np.max(diff_vec_abs)
+                    diff_norm = float(np.max(diff_vec_abs))
                     norm_X = np.max(np.abs(current_vec))
 
+                abs_err = error_factor * diff_norm
                 rel_err = abs_err / norm_X if norm_X > 1e-12 else float("inf")
 
                 step_info = {f"x{i + 1}": val for i, val in enumerate(current_vec)}
                 step_info["k"] = k + 1
-                step_info["error"] = abs_err if stop_option == "absolute_error" else rel_err
+                step_info["error"] = diff_norm
+                step_info["standard_error"] = abs_err
+                step_info["relative_error"] = rel_err
+                step_info["eval_latex"] = eval_latex
                 iterations_data.append(step_info)
 
-                if abs_err < priori_tol:
+                if (stop_option == "absolute_error" and abs_err < tol) or (
+                    stop_option == "relative_error" and rel_err < tol
+                ):
                     break
             else:
                 raise ValueError("Phuong phap khong hoi tu sau 200 lan lap.")
@@ -198,6 +260,9 @@ def solve_simple_iteration_system(n, expr_list, x0_list, alpha_list, radius, sto
             "steps": iterations_data,
             "message": f"Hoi tu sau {len(iterations_data)} lan lap.",
             "jacobian_matrix_latex": build_display_latex_matrix(display_J),
+            "system_size": n,
+            "initial_guess": [float(v) for v in x0_list],
+            "initial_evaluation_latex": initial_evaluation_latex,
             "sphere_center": alpha.tolist(),
             "sphere_radius": radius,
             "row_sum_expressions_latex": build_display_latex_expressions(
@@ -214,6 +279,7 @@ def solve_simple_iteration_system(n, expr_list, x0_list, alpha_list, radius, sto
             "max_col_sum": K_one,
             "contraction_factor_K": float(K),
             "norm_used_for_K": norm_to_use,
+            "error_norm_used": norm_to_use,
         }
     except (ValueError, TypeError) as e:
         return {"status": "error", "error": f"Loi: {str(e)}"}

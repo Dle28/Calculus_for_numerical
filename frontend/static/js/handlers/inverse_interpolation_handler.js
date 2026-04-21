@@ -1,12 +1,33 @@
 // frontend/static/js/handlers/inverse_interpolation_handler.js
 import { calculateInverseInterpolation } from '../api.js';
 import { renderInverseInterpolationSolution, showLoading, hideLoading, showError } from '../ui.js';
+import { renderFormulaSummary } from '../utils/formula_panel.js';
+
+function updateInverseInterpolationFormulaUI() {
+    const method = document.querySelector('input[name="inv-inter-method"]:checked')?.value || 'forward';
+    const methodLabel = method === 'forward' ? 'Newton Tien' : 'Newton Lui';
+
+    renderFormulaSummary(
+        document.getElementById('inv-inter-stop-formula-content'),
+        null,
+        {
+            latex: '|t_{k+1} - t_k| < \\varepsilon',
+            text: '|t_(k+1) - t_k| < eps',
+            note: `${methodLabel} dung khi do lech giua hai lan lap lien tiep cua bien t nho hon sai so yeu cau.`
+        }
+    );
+}
 
 export function setupInverseInterpolationHandlers() {
     const calculateBtn = document.getElementById('calculate-inv-inter-btn');
     if (calculateBtn) {
         calculateBtn.addEventListener('click', handleInverseIterCalculation);
     }
+    document.querySelectorAll('input[name="inv-inter-method"]').forEach((radio) => {
+        radio.addEventListener('change', updateInverseInterpolationFormulaUI);
+    });
+
+    updateInverseInterpolationFormulaUI();
 }
 
 async function handleInverseIterCalculation() {

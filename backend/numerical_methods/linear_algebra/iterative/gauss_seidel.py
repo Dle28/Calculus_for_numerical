@@ -86,6 +86,7 @@ def gauss_seidel(A, b, x0, tol=1e-5, max_iter=100):
                 "coeff_s": s,
                 "norm_used": "infinity" if norm == np.inf else "1",
                 "is_row_dominant": is_row_dominant,
+                "is_col_dominant": is_col_dominant,
             }
         
     raise ValueError(f"Phương pháp không hội tụ sau {max_iter} lần lặp.")

@@ -1461,21 +1461,21 @@ $$
 để route/formatter xử lý tiếp.
 
 <a id="review-points"></a>
-## 7. Các điểm đáng review riêng bởi Claude
+## 7. Các điểm Claude nên review riêng
 
 Đây là các điểm implementation có khả năng tạo ra câu hỏi khi review:
 
-### 7.1. LU đang gộp "nghiệm đúng duy nhất" và "nghiệm bình phương tối thiểu duy nhất"
+### 7.1. LU đang gộp hai trạng thái nghiệm
 
-Ở nhánh `A` không vuông nhưng `rank(A)=n`, code dùng `np.linalg.lstsq` nhưng vẫn trả:
+**Vấn đề:** Ở nhánh `A` không vuông nhưng `rank(A)=n`, code dùng `np.linalg.lstsq` nhưng vẫn trả:
 
 - `status = "unique_solution"`
 
 Điều này đúng về mặt "vector trả về là duy nhất", nhưng chưa đúng về semantics nếu hệ gốc vô nghiệm.
 
-### 7.2. Cholesky hiện tại không phải Cholesky SPD chuẩn
+### 7.2. Cholesky không còn là bản SPD chuẩn
 
-Implementation cho phép:
+**Vấn đề:** Implementation cho phép:
 
 - tiếp tục trong số phức,
 - làm việc với `Q^T Q`,
@@ -1484,15 +1484,15 @@ Implementation cho phép:
 
 Vì vậy cần xem đây là một **solver kiểu Cholesky mở rộng**, không phải bản textbook thuần túy.
 
-### 7.3. Gauss có pivoting yếu hơn LU
+### 7.3. Pivoting của Gauss yếu hơn LU
 
-Gauss chỉ đổi với hàng khả dụng đầu tiên khi pivot hiện tại gần 0, còn LU dùng max-abs partial pivoting.
+**Vấn đề:** Gauss chỉ đổi với hàng khả dụng đầu tiên khi pivot hiện tại gần 0, còn LU dùng max-abs partial pivoting.
 
 Nếu cần ổn định số học nhất quán, đây là chỗ nên chuẩn hóa.
 
-### 7.4. Simple iteration cho hệ phi tuyến đang ghi sai số tương đối nhưng dừng theo ngưỡng tuyệt đối
+### 7.4. Lặp đơn phi tuyến hiển thị và dừng chưa khớp nhau
 
-Ở nhánh `relative_error`, code vẫn break theo:
+**Vấn đề:** Ở nhánh `relative_error`, code vẫn break theo:
 
 $$
 \|\Delta_k\|_* < \texttt{priori\_tol}
@@ -1502,9 +1502,9 @@ không phải theo sai số tương đối đã hiển thị.
 
 Đây là điểm đáng lưu ý nếu muốn UI và backend diễn giải thống nhất.
 
-### 7.5. Newton/Newton hệ phi tuyến đang dùng nghịch đảo tường minh
+### 7.5. Newton hệ phi tuyến dùng nghịch đảo tường minh
 
-Việc dùng:
+**Vấn đề:** Việc dùng:
 
 $$
 J^{-1}F
@@ -1512,9 +1512,9 @@ $$
 
 hoặc `det(J)` để kiểm tra suy biến là dễ hiểu và tiện hiển thị, nhưng không phải cách ổn định số học nhất nếu sau này muốn scale lên hệ lớn hơn.
 
-### 7.6. Các kiểm tra hội tụ theo đạo hàm đều là kiểm tra lấy mẫu
+### 7.6. Các kiểm tra hội tụ theo đạo hàm chỉ là lấy mẫu
 
-Trong các solver Newton/Secant/Lặp đơn 1 ẩn, điều kiện hội tụ được kiểm tra trên tập điểm mẫu rời rạc. Điều này phù hợp cho ứng dụng học tập và UI, nhưng không nên diễn đạt như một chứng minh toán học chặt.
+**Vấn đề:** Trong các solver Newton/Secant/Lặp đơn 1 ẩn, điều kiện hội tụ được kiểm tra trên tập điểm mẫu rời rạc. Điều này phù hợp cho ứng dụng học tập và UI, nhưng không nên diễn đạt như một chứng minh toán học chặt.
 
 <a id="ket-luan"></a>
 ## 8. Kết luận

@@ -1,6 +1,27 @@
 // frontend/static/js/handlers/eigen_methods_handler.js
 import { calculateEigen } from '../api.js';
 import { renderEigenSolution, renderSvdSolution, showLoading, hideLoading, showError } from '../ui.js';
+import { renderFormulaList } from '../utils/formula_panel.js';
+
+function updatePowerMethodFormulaUI() {
+    renderFormulaList(document.getElementById('power-single-stop-formula-content'), [
+        {
+            label: 'Power Method - tri rieng troi',
+            latex: '|\\lambda_k - \\lambda_{k-1}| < \\varepsilon',
+            text: '|lambda_k - lambda_(k-1)| < eps',
+            note: 'Gia tri rieng moi duoc tinh bang Rayleigh quotient sau khi chuan hoa vector lap.'
+        }
+    ]);
+
+    renderFormulaList(document.getElementById('power-deflation-stop-formula-content'), [
+        {
+            label: 'Power Method + deflation',
+            latex: '|\\lambda_k^{(s)} - \\lambda_{k-1}^{(s)}| < \\varepsilon',
+            text: '|lambda_k^(s) - lambda_(k-1)^(s)| < eps',
+            note: 'Dieu kien nay duoc ap dung rieng cho moi lan tim tri rieng tren ma tran da deflate.'
+        }
+    ]);
+}
 
 export function setupEigenMethodsHandlers() {
     // === Logic chuyển đổi Tab ===
@@ -59,6 +80,8 @@ export function setupEigenMethodsHandlers() {
             }
         });
     }
+
+    updatePowerMethodFormulaUI();
 }
 
 /**

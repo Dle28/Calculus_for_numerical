@@ -5,6 +5,61 @@ import {
     normalizeMixedExpression,
     sympyToLatex
 } from '../utils/sympy_expression.js';
+import { renderFormulaSummary } from '../utils/formula_panel.js';
+
+function getNonlinearSystemStopFormula() {
+    const method = document.getElementById('ns-method-select')?.value || 'newton';
+    const stopOption = document.getElementById('ns-stop-option-select')?.value || 'absolute_error';
+    const normChoice = document.querySelector('input[name="ns-norm-option"]:checked')?.value || 'infinity';
+    const normLatex = normChoice === '1' ? '1' : '\\infty';
+    const normText = normChoice === '1' ? '1' : 'inf';
+
+    if (stopOption === 'iterations') {
+        return {
+            latex: 'k = N',
+            text: 'k = N',
+            note: 'Ung dung se dung sau dung so buoc lap N.'
+        };
+    }
+
+    if (method === 'newton' || method === 'newton_modified') {
+        if (stopOption === 'absolute_error') {
+            return {
+                latex: `\\|X_k - X_{k-1}\\|_{${normLatex}} < \\varepsilon`,
+                text: `||X_k - X_(k-1)||_${normText} < eps`,
+                note: 'Newton va Newton Modified dung chuan do nguoi dung chon de danh gia sai so tuyet doi.'
+            };
+        }
+
+        return {
+            latex: `\\frac{\\|X_k - X_{k-1}\\|_{${normLatex}}}{\\|X_k\\|_{${normLatex}}} < \\varepsilon`,
+            text: `||X_k - X_(k-1)||_${normText} / ||X_k||_${normText} < eps`,
+            note: 'Sai so tuong doi duoc lay bang sai so buoc lap chia cho do lon cua nghiem hien tai theo cung chuan.'
+        };
+    }
+
+    if (stopOption === 'absolute_error') {
+        return {
+            latex: '\\frac{K}{1-K}\\|X_k - X_{k-1}\\|_{*} < \\varepsilon',
+            text: '(K / (1-K)) * ||X_k - X_(k-1)||_* < eps',
+            note: 'Lap don he phi tuyen tu dong chon chuan 1 hoac vo cung sao cho he so co K nho hon.'
+        };
+    }
+
+    return {
+        latex: '\\frac{K}{1-K}\\frac{\\|X_k - X_{k-1}\\|_{*}}{\\|X_k\\|_{*}} < \\varepsilon',
+        text: '(K / (1-K)) * ||X_k - X_(k-1)||_* / ||X_k||_* < eps',
+        note: 'Sai so tuong doi cua lap don he phi tuyen dung cung he so co K va chuan duoc chon tu dong.'
+    };
+}
+
+function updateNonlinearSystemStopFormulaUI() {
+    renderFormulaSummary(
+        document.getElementById('ns-stop-formula-content'),
+        null,
+        getNonlinearSystemStopFormula()
+    );
+}
 
 function renderSystemSympyPreview(inputElement, previewElement) {
     if (!inputElement || !previewElement) return;
@@ -86,6 +141,7 @@ sqrt(x + 3*log(x, 10))`;
     }
 
     renderLatexReference(referenceContainer, 'nonlinear_system', method);
+    updateNonlinearSystemStopFormulaUI();
 }
 
 export function setupNonlinearSystemsHandlers() {
@@ -93,6 +149,8 @@ export function setupNonlinearSystemsHandlers() {
     const expressionsInput = document.getElementById('ns-expressions-input');
     const previewDiv = document.getElementById('ns-latex-preview');
     const methodSelect = document.getElementById('ns-method-select');
+    const stopOptionSelect = document.getElementById('ns-stop-option-select');
+    const normOptions = document.querySelectorAll('input[name="ns-norm-option"]');
 
     katex.render('||X_k - X_{k-1}||_\\infty', document.getElementById('ns-norm-inf-katex'));
     katex.render('||X_k - X_{k-1}||_1', document.getElementById('ns-norm-1-katex'));
@@ -105,6 +163,14 @@ export function setupNonlinearSystemsHandlers() {
     if (methodSelect) {
         methodSelect.addEventListener('change', updateNonlinearSystemUI);
     }
+
+    if (stopOptionSelect) {
+        stopOptionSelect.addEventListener('change', updateNonlinearSystemStopFormulaUI);
+    }
+
+    normOptions.forEach((option) => {
+        option.addEventListener('change', updateNonlinearSystemStopFormulaUI);
+    });
 
     if (calculateBtn) {
         calculateBtn.addEventListener('click', handleCalculation);

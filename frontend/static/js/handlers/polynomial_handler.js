@@ -1,12 +1,30 @@
 // frontend/static/js/handlers/polynomial_handler.js
 import { solvePolynomial } from '../api.js';
 import { renderPolynomialSolution, showLoading, hideLoading, showError } from '../ui.js';
+import { renderFormulaList } from '../utils/formula_panel.js';
+
+function updatePolynomialStopFormulaUI() {
+    renderFormulaList(document.getElementById('poly-stop-formula-content'), [
+        {
+            label: 'Chia doi tren moi khoang cach ly',
+            latex: '\\frac{b-a}{2} < \\varepsilon',
+            text: '(b - a) / 2 < eps'
+        },
+        {
+            label: 'Hoac dung neu tim duoc nghiem chinh xac',
+            latex: 'P(c) = 0',
+            text: 'P(c) = 0'
+        }
+    ]);
+}
 
 export function setupPolynomialHandlers() {
     const calculateBtn = document.getElementById('calculate-poly-btn');
     if (calculateBtn) {
         calculateBtn.addEventListener('click', handleCalculation);
     }
+
+    updatePolynomialStopFormulaUI();
 }
 
 async function handleCalculation() {

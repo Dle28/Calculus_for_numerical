@@ -1,6 +1,53 @@
 // frontend/static/js/handlers/iterative_methods_handler.js
 import { solveIterativeLinearSystem, solveSimpleIterationSystem } from '../api.js';
 import { renderIterativeSolution, showLoading, hideLoading, showError } from '../ui.js';
+import { renderFormulaList } from '../utils/formula_panel.js';
+
+function updateJacobiGaussSeidelFormulaUI() {
+    renderFormulaList(document.getElementById('iter-jacobi-gs-formula-content'), [
+        {
+            label: 'Jacobi - cheo troi hang',
+            latex: '\\frac{q}{1-q}\\|X^{(k+1)} - X^{(k)}\\|_{\\infty} < \\varepsilon',
+            text: '(q / (1-q)) * ||X^(k+1) - X^k||_inf < eps'
+        },
+        {
+            label: 'Jacobi - cheo troi cot',
+            latex: '\\frac{\\lambda q}{1-q}\\|X^{(k+1)} - X^{(k)}\\|_{1} < \\varepsilon',
+            text: '(lambda*q / (1-q)) * ||X^(k+1) - X^k||_1 < eps'
+        },
+        {
+            label: 'Gauss-Seidel - cheo troi hang',
+            latex: '\\frac{q}{(1-s)(1-q)}\\|X^{(k)} - X^{(k-1)}\\|_{\\infty} < \\varepsilon',
+            text: '(q / ((1-s)(1-q))) * ||X^k - X^(k-1)||_inf < eps'
+        },
+        {
+            label: 'Gauss-Seidel - cheo troi cot',
+            latex: '\\frac{q}{(1-s)(1-q)}\\|X^{(k)} - X^{(k-1)}\\|_{1} < \\varepsilon',
+            text: '(q / ((1-s)(1-q))) * ||X^k - X^(k-1)||_1 < eps'
+        }
+    ]);
+}
+
+function updateSimpleIterationFormulaUI() {
+    const normChoice = document.getElementById('simple-iter-norm-choice')?.value || 'inf';
+    const normLatex = normChoice === '1' ? '1' : '\\infty';
+    const normText = normChoice === '1' ? '1' : 'inf';
+
+    renderFormulaList(document.getElementById('iter-simple-formula-content'), [
+        {
+            label: 'Neu ||B|| < 1',
+            latex: `\\frac{\\|B\\|_{${normLatex}}}{1-\\|B\\|_{${normLatex}}}\\|X^{(k+1)} - X^{(k)}\\|_{${normLatex}} < \\varepsilon`,
+            text: `(||B||_${normText} / (1-||B||_${normText})) * ||X^(k+1) - X^k||_${normText} < eps`,
+            note: 'Ung dung doi dieu kien dung ve nguong tren sai khac hai buoc lap lien tiep.'
+        },
+        {
+            label: 'Neu ||B|| >= 1',
+            latex: `\\|X^{(k+1)} - X^{(k)}\\|_{${normLatex}} < \\varepsilon`,
+            text: `||X^(k+1) - X^k||_${normText} < eps`,
+            note: 'Day la nguong fallback ma app dang dung khi dieu kien hoi tu khong duoc dam bao.'
+        }
+    ]);
+}
 
 export function setupIterativeMethodsHandlers() {
     const calculateJacobiBtn = document.getElementById('calculate-jacobi-btn');
@@ -14,6 +61,10 @@ export function setupIterativeMethodsHandlers() {
     const calculateSimpleIterBtn = document.getElementById('calculate-simple-iteration-btn');
     if (calculateSimpleIterBtn) {
         calculateSimpleIterBtn.addEventListener('click', handleSimpleIterationCalculation);
+    }
+    const simpleIterNormChoice = document.getElementById('simple-iter-norm-choice');
+    if (simpleIterNormChoice) {
+        simpleIterNormChoice.addEventListener('change', updateSimpleIterationFormulaUI);
     }
     // Logic xử lý chuyển tab cho trang phương pháp lặp
     const iterTabs = document.querySelectorAll('.iter-hpt-tab');
@@ -41,6 +92,9 @@ export function setupIterativeMethodsHandlers() {
             }
         });
     });
+
+    updateJacobiGaussSeidelFormulaUI();
+    updateSimpleIterationFormulaUI();
 }
 
 async function handleJacobiCalculation() {

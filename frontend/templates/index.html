@@ -174,6 +174,10 @@ sidebarToggle.addEventListener('click', () => {
             </select>
         </div>
     </div>
+    <div id="inv-iter-stop-formula-group" class="mb-4 rounded-lg border border-sky-200 bg-sky-50 p-4">
+        <p class="text-sm font-medium text-sky-900">Cong thuc sai so cua cac phuong phap lap nghich dao</p>
+        <div id="inv-iter-stop-formula-content" class="mt-2"></div>
+    </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <button id="calculate-inv-jacobi-btn" class="action-btn bg-teal-600 hover:bg-teal-700">Lặp Jacobi</button>
         <button id="calculate-inv-newton-btn" class="action-btn bg-sky-600 hover:bg-sky-700">Lặp tựa Newton</button>
@@ -228,7 +232,6 @@ sidebarToggle.addEventListener('click', () => {
             </button>
         </nav>
     </div>
-
     <div>
         <div id="eigen-danilevsky-content" class="eigen-tab-content">
             <div class="mb-6">
@@ -259,6 +262,10 @@ sidebarToggle.addEventListener('click', () => {
                     <input id="power-single-max-iter" type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" value="100">
                 </div>
             </div>
+            <div id="power-single-stop-formula-group" class="mb-4 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+                <p class="text-sm font-medium text-indigo-900">Cong thuc dieu kien dung</p>
+                <div id="power-single-stop-formula-content" class="mt-2"></div>
+            </div>
             <div class="mb-6">
                 <button id="calculate-power-method-single-btn" class="action-btn bg-indigo-600 hover:bg-indigo-700">Tìm giá trị riêng trội</button>
             </div>
@@ -286,6 +293,10 @@ sidebarToggle.addEventListener('click', () => {
                     <label for="power-deflation-max-iter" class="block text-sm font-medium text-gray-700">Số lần lặp tối đa</label>
                     <input id="power-deflation-max-iter" type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" value="100">
                 </div>
+            </div>
+            <div id="power-deflation-stop-formula-group" class="mb-4 rounded-lg border border-purple-200 bg-purple-50 p-4">
+                <p class="text-sm font-medium text-purple-900">Cong thuc dieu kien dung</p>
+                <div id="power-deflation-stop-formula-content" class="mt-2"></div>
             </div>
             <div class="mb-6">
                 <button id="calculate-power-method-deflation-btn" class="action-btn bg-purple-600 hover:bg-purple-700">Tính các giá trị riêng</button>
@@ -352,6 +363,12 @@ sidebarToggle.addEventListener('click', () => {
                 <input id="stop-value-input" type="number" step="any" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" placeholder="0.0001">
             </div>
         </div>
+
+        <div id="root-stop-formula-group" class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+            <p class="text-sm font-medium text-emerald-900">Cong thuc dieu kien dung dang ap dung</p>
+            <div id="root-stop-formula-katex" class="mt-2 min-h-[48px] text-lg text-emerald-900"></div>
+            <p id="root-stop-formula-note" class="mt-2 text-xs text-emerald-800"></p>
+        </div>
         
         <div id="advanced-stop-condition-group" style="display:none;">
             <label class="block text-sm font-medium text-gray-700">Công thức đánh giá sai số</label>
@@ -366,8 +383,13 @@ sidebarToggle.addEventListener('click', () => {
                 </div>
             </div>
         </div>
+        <div id="root-custom-columns-group" class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <label for="root-custom-columns-input" class="block text-sm font-medium text-gray-700">Cot tuy chinh cho bang lap</label>
+            <textarea id="root-custom-columns-input" rows="4" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 font-mono" placeholder="V = pi*c^3/6&#10;width = b - a"></textarea>
+            <p id="root-custom-columns-help" class="mt-2 text-xs text-gray-500">Moi dong theo dang Ten cot = bieu thuc.</p>
+            <p id="root-custom-columns-status" class="mt-2 text-xs text-slate-600">Khong co cot tuy chinh.</p>
+        </div>
     </div>
-    
     <div class="mt-8 mb-8">
         <button id="calculate-nonlinear-btn" class="action-btn bg-green-600 hover:bg-green-700">Giải</button>
     </div>
@@ -403,6 +425,10 @@ sidebarToggle.addEventListener('click', () => {
         </div>
 
         <!-- Khối chọn chuẩn tính sai số cho PP Newton -->
+        <div id="ns-stop-formula-group" class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+            <p class="text-sm font-medium text-yellow-900">Cong thuc dieu kien dung dang ap dung</p>
+            <div id="ns-stop-formula-content" class="mt-2"></div>
+        </div>
         <div id="ns-norm-selection-group" style="display:none;">
             <label class="block text-sm font-medium text-gray-700">Chọn chuẩn</label>
             <div class="mt-2 flex items-center space-x-6 p-3 bg-gray-50 rounded-md">
@@ -489,6 +515,10 @@ sidebarToggle.addEventListener('click', () => {
                 <input id="iter-max-iter" type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" value="100">
             </div>
         </div>
+        <div id="iter-jacobi-gs-formula-group" class="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <p class="text-sm font-medium text-blue-900">Cong thuc sai so cho Jacobi va Gauss-Seidel</p>
+            <div id="iter-jacobi-gs-formula-content" class="mt-2"></div>
+        </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <button id="calculate-jacobi-btn" class="action-btn bg-teal-600 hover:bg-teal-700">Jacobi</button>
             <button id="calculate-gs-btn" class="action-btn bg-sky-600 hover:bg-sky-700">Gauss-Seidel</button>
@@ -526,6 +556,10 @@ sidebarToggle.addEventListener('click', () => {
                 </select>
             </div>
         </div>
+        <div id="iter-simple-formula-group" class="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-4">
+            <p class="text-sm font-medium text-rose-900">Cong thuc sai so cua lap don ma tran</p>
+            <div id="iter-simple-formula-content" class="mt-2"></div>
+        </div>
         <div class="grid grid-cols-1 gap-4 mb-8">
             <button id="calculate-simple-iteration-btn" class="action-btn bg-rose-600 hover:bg-rose-700">Tính bằng Lặp Đơn</button>
         </div>
@@ -552,6 +586,10 @@ sidebarToggle.addEventListener('click', () => {
             <label for="poly-max-iter" class="block text-sm font-medium text-gray-700">Số lần lặp tối đa (cho mỗi nghiệm)</label>
             <input id="poly-max-iter" type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" value="100">
         </div>
+    </div>
+    <div id="poly-stop-formula-group" class="mb-4 rounded-lg border border-purple-200 bg-purple-50 p-4">
+        <p class="text-sm font-medium text-purple-900">Cong thuc dung trong tim nghiem tren moi khoang</p>
+        <div id="poly-stop-formula-content" class="mt-2"></div>
     </div>
     <div class="mt-8 mb-8">
         <button id="calculate-poly-btn" class="action-btn bg-purple-600 hover:bg-purple-700">Tìm Nghiệm Thực</button>
@@ -1076,6 +1114,10 @@ sidebarToggle.addEventListener('click', () => {
             <label for="inv-inter-epsilon" class="block text-sm font-medium text-gray-700">Sai số ε</label>
             <input type="number" step="any" id="inv-inter-epsilon" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 font-mono" value="0.00001">
         </div>
+    </div>
+    <div id="inv-inter-stop-formula-group" class="mb-4 rounded-lg border border-orange-200 bg-orange-50 p-4">
+        <p class="text-sm font-medium text-orange-900">Cong thuc dieu kien dung</p>
+        <div id="inv-inter-stop-formula-content" class="mt-2"></div>
     </div>
     <div>
         <label class="block text-sm font-medium text-gray-700">Phương pháp</label>

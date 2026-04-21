@@ -28,6 +28,14 @@ def solve_system_route():
             x0_list = [float(x) for x in x0_str_list]
         except (ValueError, TypeError):
             return jsonify({"error": "Giá trị điều kiện dừng hoặc vector ban đầu chứa ký tự không hợp lệ."}), 400
+
+        stop_option = data.get('stop_option')
+        if stop_option == 'iterations':
+            if stop_value <= 0 or abs(stop_value - int(stop_value)) > 1e-12:
+                return jsonify({"error": "Điều kiện dừng theo số lần lặp N phải là số nguyên dương."}), 400
+        else:
+            if stop_value <= 0:
+                return jsonify({"error": "Điều kiện dừng theo sai số (ε/δ) phải là số dương."}), 400
         
         if not expr_list or not x0_str_list:
             return jsonify({"error": "Vui lòng nhập đầy đủ hệ phương trình và vector ban đầu."}), 400
@@ -45,7 +53,7 @@ def solve_system_route():
                 n=n,
                 expr_list=expr_list,
                 x0_list=x0_list,
-                stop_option=data.get('stop_option'),
+                stop_option=stop_option,
                 stop_value=stop_value,
                 norm_choice=data.get('norm_choice')
             )
@@ -56,7 +64,7 @@ def solve_system_route():
                 n=n,
                 expr_list=expr_list,
                 x0_list=x0_list,
-                stop_option=data.get('stop_option'),
+                stop_option=stop_option,
                 stop_value=stop_value,
                 norm_choice=data.get('norm_choice')
             )
@@ -80,7 +88,7 @@ def solve_system_route():
                 x0_list=x0_list,
                 alpha_list=alpha_list,
                 radius=radius,
-                stop_option=data.get('stop_option'),
+                stop_option=stop_option,
                 stop_value=stop_value
             )
 
@@ -91,7 +99,7 @@ def solve_system_route():
         formatted_result = format_nonlinear_system_result(
             method_name, 
             result,
-            stop_option=data.get('stop_option'),
+            stop_option=stop_option,
             stop_value=stop_value
         )
         

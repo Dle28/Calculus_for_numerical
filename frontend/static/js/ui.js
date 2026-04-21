@@ -478,6 +478,8 @@ export function renderIterativeSolution(container, data) {
         html += convergenceHtml;
     }
 
+    html += renderInputChecksPanel(data.input_checks);
+
     // Hiển thị nghiệm
     if (data.solution) {
         html += `
@@ -534,6 +536,16 @@ export function renderIterativeSolution(container, data) {
 
     // Sau khi chèn HTML, tìm và render tất cả các công thức toán học
     if (window.katex) {
+        container.querySelectorAll('.katex-render').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            } catch (_error) {
+                elem.textContent = elem.dataset.formula;
+            }
+        });
         container.querySelectorAll('th, p').forEach(elem => {
             const matches = elem.innerHTML.match(/\$(.*?)\$/g);
             if (matches) {
@@ -591,6 +603,8 @@ export function renderInverseIterativeSolution(container, data) {
         }
         html += `</div>`;
     }
+
+    html += renderInputChecksPanel(data.input_checks);
 
     // Hiển thị ma trận ban đầu X₀
     if (data.initial_matrix) {
@@ -670,6 +684,16 @@ export function renderInverseIterativeSolution(container, data) {
 
     container.innerHTML = html;
     if (window.katex) {
+        container.querySelectorAll('.katex-render').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            } catch (_error) {
+                elem.textContent = elem.dataset.formula;
+            }
+        });
         container.querySelectorAll('th, p').forEach(elem => {
             const matches = elem.innerHTML.match(/\$(.*?)\$/g);
             if (matches) {
@@ -945,9 +969,14 @@ export function renderRootFindingSolution(container, data) {
             const M2_text = (data.extra_info.M2) ? `, M₂ ≈ <strong>${data.extra_info.M2.toExponential(4)}</strong>` : '';
             extraInfoHtml += `<p>${m1_text}${M1_text}${M2_text}</p>`;
         }
+        if (data.extra_info.q !== null && data.extra_info.q !== undefined) {
+            extraInfoHtml += `<p>Há»‡ sá»‘ co <strong>q = ${data.extra_info.q.toFixed(6)}</strong>.</p>`;
+        }
         extraInfoHtml += '</div>';
         html += extraInfoHtml;
     }
+
+    html += renderInputChecksPanel(data.input_checks);
 
     html += `
         <div class="my-6 text-center">
@@ -957,6 +986,7 @@ export function renderRootFindingSolution(container, data) {
 
     if (data.steps && data.steps.length > 0) {
         const table = data.steps;
+        const customColumns = Array.isArray(data.custom_columns_meta) ? data.custom_columns_meta : [];
         const errorColName = data.error_col_name || "Sai số";
 
         // <<< SỬA LỖI Ở ĐÂY: Tự động xác định các cột >>>
@@ -970,11 +1000,9 @@ export function renderRootFindingSolution(container, data) {
             'phixn': 'φ(x_k)', 'abs_diff': '|x_{k+1}-x_k|', 'error': errorColName
         };
 
-        Object.keys(keyToHeaderMap).forEach(key => {
-            if (firstRowKeys.includes(key)) {
-                headers.push(keyToHeaderMap[key]);
-            }
-        });
+        const baseKeys = Object.keys(keyToHeaderMap).filter(key => firstRowKeys.includes(key));
+        baseKeys.forEach(key => headers.push(keyToHeaderMap[key]));
+        customColumns.forEach(column => headers.push(column.label));
         
         html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
         html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
@@ -985,25 +1013,25 @@ export function renderRootFindingSolution(container, data) {
         const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
         table.forEach(row => {
             html += `<tr class="bg-white border-b">`;
-            Object.keys(keyToHeaderMap).forEach(key => {
-                if (firstRowKeys.includes(key)) {
-                    let value = row[key];
-                    let displayValue = 'N/A';
-                    if (value !== undefined && value !== null) {
-                        if (typeof value === 'number') {
-                            if (key === 'k' || key === 'n') {
-                                displayValue = value;
-                            } else if (Math.abs(value) < 1e-4 && Math.abs(value) > 0) {
-                                displayValue = value.toExponential(4);
-                            } else {
-                                displayValue = value.toFixed(precision);
-                            }
-                        } else {
+            [...baseKeys, ...customColumns.map(column => column.key)].forEach(key => {
+                let value = row[key];
+                let displayValue = 'N/A';
+                if (value !== undefined && value !== null) {
+                    if (typeof value === 'number') {
+                        if (key === 'k' || key === 'n') {
                             displayValue = value;
+                        } else if (!Number.isFinite(value)) {
+                            displayValue = value > 0 ? 'inf' : '-inf';
+                        } else if (Math.abs(value) < 1e-4 && Math.abs(value) > 0) {
+                            displayValue = value.toExponential(4);
+                        } else {
+                            displayValue = value.toFixed(precision);
                         }
+                    } else {
+                        displayValue = value;
                     }
-                    html += `<td class="px-6 py-4 font-mono">${displayValue}</td>`;
                 }
+                html += `<td class="px-6 py-4 font-mono">${displayValue}</td>`;
             });
             html += `</tr>`;
         });
@@ -1011,6 +1039,19 @@ export function renderRootFindingSolution(container, data) {
         html += `</tbody></table></div>`;
     }
     container.innerHTML = html;
+
+    if (window.katex) {
+        container.querySelectorAll('.katex-render').forEach((elem) => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            } catch (_error) {
+                elem.textContent = elem.dataset.formula;
+            }
+        });
+    }
 }
 
 /**
@@ -1090,6 +1131,83 @@ function renderLatexMatrixTable(matrixLatex) {
     return matrixHtml;
 }
 
+function renderInputChecksPanel(items, title = 'Kiem tra dieu kien dau vao') {
+    if (!Array.isArray(items) || items.length === 0) return '';
+
+    const badgeClassByStatus = {
+        passed: 'bg-green-100 text-green-800',
+        warning: 'bg-amber-100 text-amber-800',
+        info: 'bg-slate-100 text-slate-700',
+    };
+    const badgeTextByStatus = {
+        passed: 'Dat',
+        warning: 'Can luu y',
+        info: 'Thong tin',
+    };
+
+    const rows = items.map((item) => {
+        const status = item.status || 'info';
+        const badgeClass = badgeClassByStatus[status] || badgeClassByStatus.info;
+        const badgeText = badgeTextByStatus[status] || badgeTextByStatus.info;
+        return `
+            <div class="rounded-lg border border-slate-200 bg-white p-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}">${badgeText}</span>
+                    <span class="text-sm font-semibold text-slate-800">${item.label || 'Dieu kien'}</span>
+                </div>
+                ${item.detail ? `<p class="mt-2 text-sm text-slate-700">${item.detail}</p>` : ''}
+                ${item.formula ? `<div class="mt-2 text-sm text-slate-700"><span class="katex-render" data-formula="${item.formula}"></span></div>` : ''}
+            </div>`;
+    }).join('');
+
+    return `
+        <div class="my-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <h3 class="text-lg font-semibold text-slate-800 mb-3">${title}</h3>
+            <div class="space-y-3">${rows}</div>
+        </div>`;
+}
+
+function renderTableFormulaPanel(formulas, title = 'Cong thuc cac cot trong bang lap') {
+    if (!formulas) return '';
+
+    const rows = [];
+    if (formulas.error_formula) {
+        rows.push({
+            label: formulas.error_label || '\\eta_k',
+            formula: formulas.error_formula,
+        });
+    }
+    if (formulas.standard_error_formula) {
+        rows.push({
+            label: formulas.standard_error_label || '\\Delta_k',
+            formula: formulas.standard_error_formula,
+        });
+    }
+    if (formulas.relative_error_formula) {
+        rows.push({
+            label: formulas.relative_error_label || '\\delta_k',
+            formula: formulas.relative_error_formula,
+        });
+    }
+    if (rows.length === 0) return '';
+
+    return `
+        <div class="my-6 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+            <h3 class="text-lg font-semibold text-indigo-900 mb-3">${title}</h3>
+            <div class="space-y-3">
+                ${rows.map((row) => `
+                    <div class="rounded-lg border border-indigo-100 bg-white p-3">
+                        <p class="text-sm font-semibold text-indigo-900">
+                            <span class="katex-render" data-formula="${row.label}"></span>
+                        </p>
+                        <div class="mt-2 text-sm text-slate-800">
+                            <span class="katex-render" data-formula="${row.formula}"></span>
+                        </div>
+                    </div>`).join('')}
+            </div>
+        </div>`;
+}
+
 function renderLatexNormAnalysis(expressionsLatex, maxima, labelPrefix, indexSymbol, normSuffix, contractionFactor, precision) {
     if (!expressionsLatex || expressionsLatex.length === 0) return '';
 
@@ -1148,6 +1266,7 @@ export function renderNonlinearSystemSolution(container, data) {
     }
     
     const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+    const nonlinearInputChecksHtml = renderInputChecksPanel(data.input_checks, 'Kiem tra dieu kien dau vao va dao ham');
 
     let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
     html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
@@ -1210,6 +1329,8 @@ export function renderNonlinearSystemSolution(container, data) {
         </div>`;
     }
 
+    html += nonlinearInputChecksHtml;
+
     if (data.solution) {
         let solutionHtml = data.solution.map((val, i) => `x<sub>${i+1}</sub> = ${val.toFixed(precision)}`).join('; ');
         html += `
@@ -1233,14 +1354,49 @@ export function renderNonlinearSystemSolution(container, data) {
         </div>`;
     }
 
+    html += renderTableFormulaPanel(data.table_formulas, 'Cong thuc sai so trong bang lap');
+
     if (data.steps && data.steps.length > 0) {
         const table = data.steps;
-        const headers = Object.keys(table[0]).sort((a, b) => a === 'k' ? -1 : b === 'k' ? 1 : a.localeCompare(b));
+        const firstRow = table[0] || {};
+        const variableKeys = Object.keys(firstRow)
+            .filter((key) => /^x\d+$/.test(key))
+            .sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+        const headers = ['k', ...variableKeys];
+
+        if ('error' in firstRow) headers.push('error');
+        if ('standard_error' in firstRow) headers.push('standard_error');
+        if ('relative_error' in firstRow) headers.push('relative_error');
+
+        Object.keys(firstRow).forEach((key) => {
+            if (!headers.includes(key)) headers.push(key);
+        });
+
+        const headerMap = {
+            k: 'k',
+            error: data.table_formulas?.error_label
+                ? `<span class="katex-render" data-formula="${data.table_formulas.error_label}"></span>`
+                : 'Sai so',
+            standard_error: data.table_formulas?.standard_error_label
+                ? `<span class="katex-render" data-formula="${data.table_formulas.standard_error_label}"></span>`
+                : 'Sai so chuan',
+            relative_error: data.table_formulas?.relative_error_label
+                ? `<span class="katex-render" data-formula="${data.table_formulas.relative_error_label}"></span>`
+                : 'Sai so tuong doi',
+        };
+        variableKeys.forEach((key) => {
+            headerMap[key] = `<span class="katex-render" data-formula="${key.replace('x', 'x_')}"></span>`;
+        });
+
+        // Cac cot bo sung cho giai thich/thay so (backend tra ve dang LaTeX)
+        headerMap.eval_latex = 'Thay so (giai thich)';
 
         html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
         html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
         html += `<thead class="text-xs text-gray-800 bg-gray-100"><tr>`;
-        headers.forEach(h => html += `<th scope="col" class="px-6 py-3">${h.replace('error', 'Sai số').replace('relative_error', 'Sai số tương đối')}</th>`);
+        headers.forEach((key) => {
+            html += `<th scope="col" class="px-6 py-3">${headerMap[key] || key}</th>`;
+        });
         html += `</tr></thead><tbody>`;
 
         table.forEach(row => {
@@ -1249,7 +1405,9 @@ export function renderNonlinearSystemSolution(container, data) {
                 let value = row[key];
                 let displayValue = 'N/A';
                 if (value !== undefined && value !== null) {
-                    if (typeof value === 'number') {
+                    if (typeof value === 'string' && (key.endsWith('_latex') || key === 'eval_latex')) {
+                        displayValue = `<span class="katex-render" data-formula="${value}"></span>`;
+                    } else if (typeof value === 'number') {
                         if (key === 'k') {
                             displayValue = value;
                         } else if (Math.abs(value) < 1e-4 && Math.abs(value) > 0) {
