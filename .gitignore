@@ -1,0 +1,107 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.dmypy.json
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Môi trường ảo (Virtual Environments)
+# Rất quan trọng để bỏ qua thư mục này
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# File chứa biến môi trường và thông tin nhạy cảm
+.env
+.env.*
+!.env.example
+.flaskenv
+
+# File CSDL (Databases)
+*.sqlite3
+*.db
+*.db-journal
+
+# File log
+*.log
+logs/
+
+# Cấu hình của IDE và trình soạn thảo mã
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Frontend / JavaScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.parcel-cache/
+dist-ssr/
+
+# File hệ điều hành
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+
+# Local Python version managers
+.python-version

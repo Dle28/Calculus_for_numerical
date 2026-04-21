@@ -1,0 +1,199 @@
+// frontend/static/js/main.js
+import { setupDirectMethodsHandlers } from './handlers/direct_methods_handler.js';
+import { setupInverseMethodsHandlers } from './handlers/inverse_methods_handler.js';
+import { setupIterativeMethodsHandlers } from './handlers/iterative_methods_handler.js';
+import { setupInverseIterativeMethodsHandlers } from './handlers/inverse_iterative_methods_handler.js';
+import { setupEigenMethodsHandlers } from './handlers/eigen_methods_handler.js';
+import { setupSvdApproximationHandlers } from './handlers/svd_approximation_handler.js';
+import { setupRootFindingHandlers } from './handlers/root_finding_handler.js';
+import { setupPolynomialHandlers } from './handlers/polynomial_handler.js';
+import { setupNonlinearSystemsHandlers } from './handlers/nonlinear_systems_handler.js';
+import { setupInterpolationHandlers } from './handlers/interpolation_methods_handler.js';
+import { setupHornerHandlers } from './handlers/horner_handler.js';
+import { setupTabHandlers, setupSidebarHandlers } from './tab-handlers.js';
+import { setupSplineHandlers } from './handlers/spline_handler.js';
+import { setupLeastSquaresHandlers } from './handlers/least_squares_handler.js';
+import { setupNodeSelectionHandlers } from './handlers/node_selection_handler.js';
+import { setupFindIntervalsHandlers } from './handlers/find_intervals_handler.js';
+import { setupInverseInterpolationHandlers } from './handlers/inverse_interpolation_handler.js';
+import { setupMethodGuides } from './method_guides.js';
+/**
+ * Ánh xạ từ data-page sang tiêu đề của trang.
+ */
+const PAGE_TITLES = {
+    'matrix-solve-direct': 'Giải hệ phương trình (Phương pháp trực tiếp)',
+    'matrix-solve-iterative': 'Giải hệ phương trình (Phương pháp lặp)',
+    'matrix-inverse-direct': 'Tính ma trận nghịch đảo (Phương pháp trực tiếp)',
+    'matrix-inverse-iterative': 'Tính ma trận nghịch đảo (Phương pháp lặp)',
+    'matrix-svd': 'Phân tích SVD',
+    'matrix-approximation': 'Ma trận xấp xỉ SVD',
+    'matrix-eigen-methods': 'Tìm giá trị riêng & vector riêng',
+    'nonlinear-solve': 'Giải phương trình f(x)=0',
+    'polynomial-solve': 'Giải phương trình đa thức',
+    'nonlinear-system-solve': 'Giải hệ phương trình phi tuyến',
+    'find-intervals': 'Tìm khoảng cách ly nghiệm',
+    'node-selection': 'Trích xuất mốc nội suy',
+    'horner-table': 'Sơ đồ Horner',
+    'approximation': 'Xấp xỉ hàm số',
+    'inverse-interpolation': 'Nội suy ngược (Phương pháp lặp)',
+    'spline-interpolation': 'Hàm ghép trơn (Spline)',
+    'least-squares': 'Bình phương tối thiểu',
+    // Thêm các trang khác ở đây nếu cần
+};
+
+/**
+ * Hàm chính để khởi tạo ứng dụng.
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarMenu = document.getElementById('sidebar-menu');
+    const mainContent = document.getElementById('main-content');
+    const pageTitle = document.getElementById('page-title');
+
+    if (sidebarMenu) {
+        sidebarMenu.addEventListener('click', handleNavigation);
+    }
+
+    // Thiết lập trang mặc định khi tải lần đầu
+    navigateToPage('matrix-solve-direct', mainContent, pageTitle);
+    setupSidebarHandlers();
+
+    // Thiết lập các trình xử lý sự kiện cho các nút tính toán
+    setupDirectMethodsHandlers();
+    setupInverseMethodsHandlers();
+    
+    // Thêm các hàm setup khác cho các phương pháp khác ở đây
+    // Ví dụ: setupIterativeMethodsHandlers();
+    
+    console.log("Ứng dụng đã sẵn sàng.");
+});
+
+/**
+ * Xử lý sự kiện điều hướng khi nhấp vào menu.
+ * @param {Event} event - Sự kiện click.
+ */
+function handleNavigation(event) {
+    const target = event.target.closest('button[data-page]');
+    if (!target) return; // Bỏ qua nếu không phải là nút điều hướng
+
+    const pageId = target.dataset.page;
+    const mainContent = document.getElementById('main-content');
+    const pageTitle = document.getElementById('page-title');
+
+    navigateToPage(pageId, mainContent, pageTitle);
+}
+
+/**
+ * Chuyển đến một trang cụ thể.
+ * @param {string} pageId - ID của trang cần hiển thị (từ data-page).
+ * @param {HTMLElement} mainContentContainer - Vùng chứa nội dung chính.
+ * @param {HTMLElement} titleElement - Phần tử h1 để cập nhật tiêu đề.
+ */
+function navigateToPage(pageId, mainContentContainer, titleElement) {
+    const pageTemplate = document.getElementById(`${pageId}-page`);
+
+    if (pageTemplate) {
+        // Cập nhật tiêu đề trang
+        titleElement.textContent = PAGE_TITLES[pageId] || 'Máy tính Giải tích số';
+
+        // Cập nhật nội dung chính
+        mainContentContainer.innerHTML = pageTemplate.innerHTML;
+
+        // Xóa kết quả cũ và thông báo lỗi (nếu có)
+        const resultsArea = mainContentContainer.querySelector('#results-area');
+        const errorDiv = mainContentContainer.querySelector('#error-message');
+        if (resultsArea) resultsArea.innerHTML = '';
+        if (errorDiv) errorDiv.classList.add('hidden');
+        
+        // **Quan trọng**: Sau khi chèn nội dung mới, phải gắn lại các trình xử lý sự kiện
+        // vì các phần tử cũ đã bị thay thế.
+        rebindEventHandlers(mainContentContainer, pageId);
+
+    } else {
+        console.error(`Không tìm thấy template cho trang: ${pageId}-page`);
+        mainContentContainer.innerHTML = `<p class="text-red-500">Lỗi: Không thể tải nội dung trang.</p>`;
+    }
+}
+
+/**
+ * Xử lý sự kiện click cho tất cả các nút copy.
+ * Sử dụng event delegation.
+ * @param {Event} e - Sự kiện click.
+ */
+function handleCopyClick(e) {
+    const copyBtn = e.target.closest('.copy-btn');
+    if (!copyBtn) return; // Bỏ qua nếu không phải nút copy
+
+    const content = copyBtn.dataset.copyContent;
+    if (content === undefined || content === null) return;
+
+    navigator.clipboard.writeText(content).then(() => {
+        // Thành công: thay đổi text của nút
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Đã chép!';
+        copyBtn.classList.add('copied');
+        
+        // Quay lại text cũ sau 1.5 giây
+        setTimeout(() => {
+            copyBtn.textContent = originalText;
+            copyBtn.classList.remove('copied');
+        }, 1500);
+    }).catch(err => {
+        // Thất bại: báo lỗi (ví dụ: nếu không có quyền)
+        console.error('Không thể sao chép: ', err);
+        copyBtn.textContent = 'Lỗi!';
+        setTimeout(() => {
+            copyBtn.textContent = 'Copy';
+        }, 1500);
+    });
+}
+
+/**
+ * Gắn lại các trình xử lý sự kiện cho các nút trong nội dung vừa được tải.
+ * Điều này cần thiết vì innerHTML sẽ tạo ra các phần tử mới.
+ * @param {HTMLElement} container - Vùng chứa nội dung.
+ */
+function rebindEventHandlers(container, pageId) {
+    // Chỉ cần gọi lại hàm setup cho nhóm phương pháp tương ứng
+    // Trong trường hợp này là các phương pháp trực tiếp
+    container.addEventListener('click', handleCopyClick);
+    setupDirectMethodsHandlers();
+    setupInverseMethodsHandlers();
+    setupIterativeMethodsHandlers();
+    setupInverseIterativeMethodsHandlers();
+    setupEigenMethodsHandlers();
+    setupSvdApproximationHandlers();
+    setupRootFindingHandlers();
+    setupPolynomialHandlers();
+    setupNonlinearSystemsHandlers();
+    setupFindIntervalsHandlers();
+    setupNodeSelectionHandlers();
+    setupHornerHandlers();
+    setupInterpolationHandlers();
+    setupInverseInterpolationHandlers();
+    setupSplineHandlers();
+    setupLeastSquaresHandlers();
+    // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
+    // setupIterativeMethodsHandlers();
+    // setupEigenMethodsHandlers();
+    setupTabHandlers({
+        tabClass: '.horner-tab',
+        contentClass: '.horner-tab-content', 
+        activeTextColor: 'text-red-600',
+        activeBorderColor: 'border-red-500'
+    });
+
+    setupTabHandlers({
+        tabClass: '.approx-tab',
+        contentClass: '.approx-tab-content',
+        activeTextColor: 'text-pink-600', 
+        activeBorderColor: 'border-pink-500'
+    });
+    setupTabHandlers({
+    tabClass: '.spline-tab',
+    contentClass: '.spline-tab-content',
+    activeTextColor: 'text-cyan-600', 
+    activeBorderColor: 'border-cyan-500'
+    });
+
+    setupMethodGuides(container, pageId);
+}
